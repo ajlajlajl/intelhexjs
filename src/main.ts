@@ -6,7 +6,6 @@ export class memorySection {
 
     constructor(address: number) {
         this.startAddress = address
-        this.data = Buffer.from([])
     }
 }
 
@@ -20,7 +19,7 @@ export class memory {
     }
 }
 
-export enum intelHexRecordType {
+export enum IntelHexRecordType {
     data = 0,
     endOfFile = 1,
     extendedSegmentAddress = 2,
@@ -29,9 +28,9 @@ export enum intelHexRecordType {
     startLinearAddress = 5,
 }
 
-export class intelHexLine {
+export class IntelHexLine {
     address: number = 0
-    recordType: intelHexRecordType = 0
+    recordType: IntelHexRecordType = 0
     data: number[] = []
 
     constructor(line?: string) {
@@ -40,11 +39,14 @@ export class intelHexLine {
     }
 
     private parseLineString(line: string) {
+        line = line.trim()
         /*
         0-len
         1,2-address
         3-code
         */
+        if (line.length % 2 == 0)
+            throw new Error("Invalid Line Format. odd number of characters!")
         if (line[0] !== ':')
             throw new Error("Invalid Line Format. Expected ':' at beginning!")
         let byteCh = line.slice(1).match(/.{1,2}/g)
@@ -53,7 +55,7 @@ export class intelHexLine {
         let bytes = byteCh.map(i => Number.parseInt(i, 16))
         if (bytes[0] != bytes.length - 5)
             throw new Error("Invalid Line Length.")
-        this.address = bytes[1] * 256 + bytes[2]
+        this.address = bytes[1] << 8 + bytes[2]
         this.recordType = bytes[3]
         this.data = bytes.slice(4, bytes.length - 1)
         if (this.calcCrc() != bytes[bytes.length - 1])
@@ -63,21 +65,24 @@ export class intelHexLine {
     private calcCrc(): number {
         let data: number[] = [this.data.length, (this.address >> 8) & 0xFF, this.address & 0xFF, this.recordType, ...this.data]
         let sum = data.reduce((sum, val) => sum + val, 0)
-        return (~(sum & 0xFF) & 0xFF + 1) & 0xFF
+        return ((~(sum & 0xFF) & 0xFF) + 1) & 0xFF
     }
 
-    generateLineString(): string {
+    generateLineString(upperCase: boolean = true): string {
         let bytes: number[] = [this.data.length, (this.address >> 8) & 0xFF, this.address & 0xFF, this.recordType, ...this.data, this.calcCrc()]
-        return bytes.map(i => i.toString(16).padStart(2, '0')).join()
+        let str = bytes.map(i => i.toString(16).padStart(2, '0')).join('')
+        if (upperCase)
+            str = str.toUpperCase()
+        return ':' + str
     }
 
     //Static
-    static parse(line: string): intelHexLine {
-        return new intelHexLine(line)
+    static parse(line: string): IntelHexLine {
+        return new IntelHexLine(line)
     }
 
-    static generateLineString(address: number, recordType: intelHexRecordType, data: number[]) {
-        let line = new intelHexLine()
+    static generateLineString(address: number, recordType: IntelHexRecordType, data: number[]): string {
+        let line = new IntelHexLine()
         line.address = address
         line.recordType = recordType
         line.data = data
