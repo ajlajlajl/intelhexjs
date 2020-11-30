@@ -1,0 +1,20 @@
+{
+  "name": "intelhex",
+  "version": "1.0.0",
+  "description": "Intel Hex file parser and generator",
+  "main": "build/main.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "keywords": [
+    "intel",
+    "hex",
+    "intel-hex"
+  ],
+  "author": "ajlajlajl",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^14.14.10",
+    "jasmine": "^3.6.3"
+  }
+}
