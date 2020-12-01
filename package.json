@@ -1,6 +1,6 @@
 {
-  "name": "intelhex",
-  "version": "1.0.0",
+  "name": "intelhexjs",
+  "version": "0.1.0",
   "description": "Intel Hex file parser and generator",
   "main": "build/main.js",
   "scripts": {
@@ -12,7 +12,19 @@
     "hex",
     "intel-hex"
   ],
-  "author": "ajlajlajl",
+  "author": {
+    "name": "ajlajlajl",
+    "email": "ajl110ali@gmail.com",
+    "url": "ajl.ir"
+  },
+  "homepage": "https://github.com/ajlajlajl/intelhexjs",
+  "bugs": {
+    "url": "https://github.com/ajlajlajl/intelhexjs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ajlajlajl/intelhexjs.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/jasmine": "^3.6.2",
