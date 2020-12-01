@@ -1,8 +1,16 @@
 import {promises as fs} from "fs"
+import {EOL} from 'os'
 
-export class memorySection {
-    startAddress: number
-    data: Buffer
+const AddressLimit = {
+    b16: 1048575,
+    b32: 4294967295,
+}
+const EOLChar = {
+    system: EOL,
+    lf: '\n',
+    crlf: '\r\n',
+    cr: '\r',
+}
 
 export class MemorySection {
     startAddress: number = 0
@@ -184,31 +192,26 @@ export enum IntelHexGeneratorOptionsEOL {
 }
 
 export interface IntelHexGeneratorOptions {
-    useUppecaseForHexadecimalCharacters?: boolean
     bytesInOneLine?: number
     architecture?: IntelHexGeneratorOptionsArch
     endOfLine?: IntelHexGeneratorOptionsEOL
+    skipEOF?: boolean
 }
 
 let defaultIntelHexGeneratorOptions: IntelHexGeneratorOptions = {
-    useUppecaseForHexadecimalCharacters: true,
     bytesInOneLine: 16,
     architecture: IntelHexGeneratorOptionsArch.b32,
     endOfLine: IntelHexGeneratorOptionsEOL.system,
+    skipEOF: false
 }
 
 export async function generateIntelHexFile(fileAddress: string, mem: Memory, opt?: IntelHexGeneratorOptions) {
     let data = generateIntelHex(mem, opt)
-    await fs.writeFile(fileAddress, 'utf8')
+    await fs.writeFile(fileAddress, data, 'utf8')
 }
 
 export function generateIntelHex(mem: Memory, opt?: IntelHexGeneratorOptions) {
-    let options: IntelHexGeneratorOptions = {}/*= {
-        useUppecaseForHexadecimalCharacters: defaultIntelHexGeneratorOptions.useUppecaseForHexadecimalCharacters,
-        bytesInOneLine: defaultIntelHexGeneratorOptions.bytesInOneLine,
-        architecture: defaultIntelHexGeneratorOptions.architecture,
-        endOfLine: defaultIntelHexGeneratorOptions.endOfLine,
-    }*/
+    let options: IntelHexGeneratorOptions = {}
     if (opt !== undefined) {
         for (let i in defaultIntelHexGeneratorOptions) {
             // @ts-ignore
@@ -222,13 +225,43 @@ export function generateIntelHex(mem: Memory, opt?: IntelHexGeneratorOptions) {
         if (maxAddress > AddressLimit[options.architecture as IntelHexGeneratorOptionsArch])
             throw new Error('Address exceeding architecture limit')
         let currentAddress = 0
-        let shifttedAddress = 0
+        let shiftedAddress = 0
+        let extendedAddress = 0
         let bpl = options.bytesInOneLine as number
         mem.sections.forEach(memSec => {
             if (memSec.data.length === 0)
                 return
-            for (let i = 0; i < memSec.data.length; i += bpl) {
-                let dataBytes = memSec.data.slice(i * bpl, bpl)
+            currentAddress = memSec.startAddress
+            shiftedAddress = currentAddress - extendedAddress
+            for (let i = 0; i < memSec.data.length;) {
+                let dataBytes: number[]
+                if (shiftedAddress >= 0x10000) {
+                    if (options.architecture == IntelHexGeneratorOptionsArch.b32) {
+                        extendedAddress = currentAddress & 0xFFFF0000
+                        shiftedAddress = currentAddress - extendedAddress
+                        lines.push(IntelHexLine.generateLineString(0, 4, [
+                            (extendedAddress >> 24) & 0xFF,
+                            (extendedAddress >> 16) & 0xFF,
+                        ]))
+                    } else { //16
+                        extendedAddress = currentAddress & 0xF0000
+                        shiftedAddress = currentAddress - extendedAddress
+                        lines.push(IntelHexLine.generateLineString(0, 2, [
+                            (extendedAddress >> 12) & 0xFF,
+                            (extendedAddress >> 4) & 0xFF,
+                        ]))
+                    }
+                }
+                if ((0x10000 - shiftedAddress) >= bpl) {
+                    dataBytes = memSec.data.slice(i, i + bpl)
+                } else {
+                    let diff = (0x10000 - shiftedAddress)
+                    dataBytes = memSec.data.slice(i, i + diff)
+                }
+                lines.push(IntelHexLine.generateLineString(shiftedAddress, 0, dataBytes))
+                i += dataBytes.length
+                shiftedAddress += dataBytes.length
+                currentAddress += dataBytes.length
             }
         })
     }
@@ -248,6 +281,7 @@ export function generateIntelHex(mem: Memory, opt?: IntelHexGeneratorOptions) {
             (mem.startLinearAddress) & 0xFF,
         ]))
     }
-    lines.push(IntelHexLine.generateLineString(0, 1, []))
+    if (options.skipEOF !== true)
+        lines.push(IntelHexLine.generateLineString(0, 1, []))
     return lines.join(EOLChar[options.endOfLine as IntelHexGeneratorOptionsEOL])
 }
