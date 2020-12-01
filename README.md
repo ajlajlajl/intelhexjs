@@ -4,6 +4,8 @@
 [Documentation](https://github.com/ajlajlajl/intelhexjs#Documentation) |
 [ToDo](https://github.com/ajlajlajl/intelhexjs#ToDo)
 
+[![Build Status](https://travis-ci.org/ajlajlajl/intelhexjs.svg?branch=master)](https://travis-ci.org/ajlajlajl/intelhexjs)
+
 Intel hex file parser and generator. with a few more perks..
 for more info on Intel file format visit: [Intel HEX - Wikipedia](https://en.wikipedia.org/wiki/Intel_HEX) or [INTEL HEX FILE FORMAT](https://www.keil.com/support/docs/1584/)
 
