@@ -27,6 +27,11 @@ export class Memory {
     startLinearAddress?: number = undefined
     startSegmentAddress?: number = undefined
 
+    constructor(sectionList?: MemorySection[]) {
+        if (sectionList !== undefined)
+            this.sections = [...sectionList]
+    }
+
     merge() {
         let merged: MemorySection[] = [...this.sections.splice(0, 1)]
         while (this.sections.length > 0) {

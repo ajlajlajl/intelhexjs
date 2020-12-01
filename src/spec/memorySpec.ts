@@ -1,4 +1,4 @@
-import {generateIntelHex, IntelHexGeneratorOptionsArch, loadIntelHexFile, Memory, MemorySection} from "../main"
+import {generateIntelHex, generateIntelHexFile, IntelHexGeneratorOptionsArch, loadIntelHexFile, Memory, MemorySection} from "../main"
 import * as path from 'path'
 import {promises as fs} from "fs"
 
@@ -96,10 +96,11 @@ describe("Hex File Generator", function () {
         let hex = await fs.readFile(path.join(__dirname, '../../resource/spec/m4.hex'), 'utf8')
         let data1: Buffer = await fs.readFile(path.join(__dirname, '../../resource/spec/m4_1.bin'))
         let data2: Buffer = await fs.readFile(path.join(__dirname, '../../resource/spec/m4_2.bin'))
-        let mem = new Memory()
-        mem.sections.push(new MemorySection(0x08000000, [...data1]))
-        mem.sections.push(new MemorySection(0x08060000, [...data2]))
-        mem.startLinearAddress=0x08008879
+        let mem = new Memory([
+            new MemorySection(0x08000000, [...data1]),
+            new MemorySection(0x08060000, [...data2]),
+        ])
+        mem.startLinearAddress = 0x08008879
         let text = generateIntelHex(mem, {
             architecture: IntelHexGeneratorOptionsArch.b32,
             bytesInOneLine: 32,
