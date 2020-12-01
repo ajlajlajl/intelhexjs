@@ -1,8 +1,9 @@
 {
   "name": "intelhexjs",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "Intel Hex file parser and generator",
   "main": "build/main.js",
+  "types": "build/main.d.ts",
   "scripts": {
     "build": "tsc --build tsconfig.json",
     "test": "jasmine --config=jasmine.json"
@@ -10,7 +11,8 @@
   "keywords": [
     "intel",
     "hex",
-    "intel-hex"
+    "parse",
+    "generate"
   ],
   "author": {
     "name": "ajlajlajl",
