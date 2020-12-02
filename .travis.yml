@@ -3,4 +3,4 @@ node_js:
   - node
   - 12
 before_script:
-  - npm run_script build
+  - npm run build
