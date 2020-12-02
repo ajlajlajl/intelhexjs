@@ -8,7 +8,6 @@
     "build": "tsc --build tsconfig.json",
     "test": "jasmine --config=jasmine.json",
     "prepare" : "npm run build",
-    "postinstall" : "npm run build",
     "prepublishOnly" : "npm test"
   },
   "files": ["build/**/*"],
